@@ -1,11 +1,14 @@
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useContext, useState } from "react";
 import Layout from "../../components/Layout";
 import data from "../../utils/data";
 import Link from "next/link";
 import Image from "next/image";
+import { Store } from "../../utils/Store";
 
 const ProductScreen = () => {
+  const { state, dispatch } = useContext(Store);
+  const [buttonDisable, setButtonDisable] = useState(false);
   const { query } = useRouter();
   const { slug } = query;
   const product = data.products.find(
@@ -14,6 +17,21 @@ const ProductScreen = () => {
   if (!product) {
     return <div>Product Not Found</div>;
   }
+
+  const addToCartHandler = () => {
+    const existItem = state.cart.cartItems.find(
+      (existProduct) => existProduct.slug === product.slug
+    );
+    const quantity = existItem ? existItem.quantity + 1 : 1;
+
+    dispatch({ type: "CART_ADD_ITEM", payload: { ...product, quantity } });
+
+    if (product.countInStock < quantity) {
+      alert("Sorry, The Product is Out of Stock");
+      setButtonDisable(true);
+      return;
+    }
+  };
 
   return (
     <Layout title={product.name}>
@@ -57,7 +75,13 @@ const ProductScreen = () => {
               <div>{product.countInStock > 0 ? "In Stock" : "Unavailable"}</div>
             </div>
             <div>
-              <button className="primary-button w-full">Add to Cart</button>
+              <button
+                className="primary-button w-full disabled:bg-gray-100"
+                onClick={addToCartHandler}
+                disabled={buttonDisable}
+              >
+                Add to Cart
+              </button>
             </div>
           </div>
         </div>
