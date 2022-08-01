@@ -9,8 +9,10 @@ import { Store } from "../../utils/Store";
 const ProductScreen = () => {
   const { state, dispatch } = useContext(Store);
   const [buttonDisable, setButtonDisable] = useState(false);
+  const router = useRouter();
   const { query } = useRouter();
   const { slug } = query;
+
   const product = data.products.find(
     (findProduct) => findProduct.slug === slug
   );
@@ -25,6 +27,7 @@ const ProductScreen = () => {
     const quantity = existItem ? existItem.quantity + 1 : 1;
 
     dispatch({ type: "CART_ADD_ITEM", payload: { ...product, quantity } });
+    router.push("/cart");
 
     if (product.countInStock < quantity) {
       alert("Sorry, The Product is Out of Stock");
