@@ -1,18 +1,45 @@
 /* eslint-disable no-unused-vars */
 import Link from "next/link";
 import React from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import Layout from "../components/Layout";
+import { getError } from "../utils/error";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 const LoginScreen = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { redirect } = router.query;
+
+  useEffect(() => {
+    if (session?.user) {
+      router.push(redirect || "/");
+    }
+  }, [router, session, redirect]);
+
   const {
     handleSubmit,
     register,
     formState: { errors },
   } = useForm();
 
-  const submitHandler = ({ email, password }) => {
-    console.log("Data", email, password);
+  const submitHandler = async ({ email, password }) => {
+    // console.log("Data", email, password);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+      if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (err) {
+      toast.error(getError(err));
+    }
   };
 
   return (
